@@ -7,7 +7,7 @@ Serial port;
  #################### OUTPUT PARAMETERS ############################
  ###################################################################
  */
- //    WINDOW PARAMETERS
+//    WINDOW PARAMETERS
 //Size of window in pixels (Please change the size() also, since Processing 3.0 doesn't support variables in size()
 int WIDTH = 500;
 int HEIGHT = 500;
@@ -42,21 +42,39 @@ void setup() {
   //Serial
   port = new Serial(this, SERIAL_PORT_NAME, BAUD_RATE);
   port.write(CONTINUOUS_OUTPUT_PARAMETER);  //Enable continuous output
-  for (int i = 1; i <= 3; i++)  //Wait for serial to become stable
-    port.bufferUntil('\n');  
+  port.bufferUntil('\n');
+  port.write("#o0");
+  println("PORT STATUS : Ready and ACTIVE");
 }
 
 void draw() {
-  background(BACKGROUND_COLOR);  //BLACK
+  background(BACKGROUND_COLOR);  //BLACK background (defult)
+  //Making the circle
+  stroke(CIRCLE_COLOR);
+  strokeWeight(10);
+  noFill();
+  ellipse(width/2, height/2, CIRCLE_DIAMETER, CIRCLE_DIAMETER);
+  port.write("#f");  //request an angle
 }
 
+
+//Serial functions : Calibrated for the protocol Razor IMU follows
 void serialEvent(Serial port) {
-  String YPR = port.readString();
-  String YAW_STRING_FORMAT = YPR.substring(YPR.indexOf('=') + 1, YPR.indexOf(','));  //We now have the number in YPR
+  String YPR = port.readStringUntil('\n');
+  YPR = YPR.substring(5);
+  //println(YPR);  
+  String[] YPR_Angles = splitTokens(YPR, ",");
+  //printArray(YPR_Angles);
+
+  String YAW_STRING_FORMAT = YPR_Angles[0];  //We now have the number in YPR
+  //println("YAW = " + YAW_STRING_FORMAT);
+
+
   YAW_RAW = float(YAW_STRING_FORMAT);
   if (FIRST_YAW) {
     INITIAL_YAW_ANGLE = YAW_RAW;
   } else {
     YAW = YAW_RAW - INITIAL_YAW_ANGLE;
+    println("YAW = " + str(YAW));  //YAW found
   }
 }
