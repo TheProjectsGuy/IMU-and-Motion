@@ -28,8 +28,8 @@ String CONTINUOUS_OUTPUT_PARAMETER = "#o1";
 int CIRCLE_DIAMETER = int(min(WIDTH, HEIGHT) * 0.5);  //The diameter of circle 
 float YAW_RAW;  //YAW angle as returned by the sensor
 float INITIAL_YAW_ANGLE;     //YAW at the beginning of the program
-boolean FIRST_YAW = false;  //Has the first YAW angle been take ?
-float YAW;      //Relative YAW angle
+boolean FIRST_YAW = true;  //Has the first YAW angle been take ?
+float YAW;      //Relative YAW angle (in DEGREES)
 
 void setup() {
   println("Welcome to IMU testing unit");
@@ -73,8 +73,16 @@ void serialEvent(Serial port) {
   YAW_RAW = float(YAW_STRING_FORMAT);
   if (FIRST_YAW) {
     INITIAL_YAW_ANGLE = YAW_RAW;
+    FIRST_YAW = false;
   } else {
     YAW = YAW_RAW - INITIAL_YAW_ANGLE;
+    //Tweaks to convert to our convention...
+    if (YAW < 0) {
+      YAW += 360;  //Convert to 0 to 360 degree scale on our reference
+    }
+    if (YAW > 180) {
+      YAW = -(360 - YAW);   //Convert -180 to +180 scale on our reference
+    }
     println("YAW = " + str(YAW));  //YAW found
   }
 }
