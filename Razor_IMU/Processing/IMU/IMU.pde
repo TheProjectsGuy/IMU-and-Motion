@@ -13,6 +13,7 @@ int WIDTH = 500;
 int HEIGHT = 500;
 color BACKGROUND_COLOR = #000000;  //default : BLACK
 color CIRCLE_COLOR = #FFFFFF;  //default : WHITE
+color SPHERE_COLOR = #816464;
 
 //Serial parameters
 String SERIAL_PORT_NAME = "/dev/cu.usbmodem141111";
@@ -55,12 +56,22 @@ void draw() {
   noFill();
   ellipse(width/2, height/2, CIRCLE_DIAMETER, CIRCLE_DIAMETER);
   port.write("#f");  //request an angle
+  //YAW now has the angle (in degrees)
+  fill(SPHERE_COLOR);
+  stroke(color(0,0,0));
+  strokeWeight(5);
+  ellipse( 
+    width/2 + sin(radians(YAW)) * 7.0/8.0 * (CIRCLE_DIAMETER - 20) * 0.5,
+    height/2 - cos(radians(YAW)) * 7.0/8.0 * (CIRCLE_DIAMETER - 20) * 0.5,
+    CIRCLE_DIAMETER * 0.25,
+    CIRCLE_DIAMETER * 0.25
+    );
 }
 
 
 //Serial functions : Calibrated for the protocol Razor IMU follows
 void serialEvent(Serial port) {
-  String YPR = port.readStringUntil('\n');
+  String YPR = port.readStringUntil('\n');  //Format is "#YPR=$YAW$,$PITCH$,$ROLL$"
   YPR = YPR.substring(5);
   //println(YPR);  
   String[] YPR_Angles = splitTokens(YPR, ",");
@@ -85,4 +96,9 @@ void serialEvent(Serial port) {
     }
     println("YAW = " + str(YAW));  //YAW found
   }
+}
+
+void keyPressed() {
+  if (key == 'R') 
+    FIRST_YAW = true;
 }
